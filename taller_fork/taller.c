@@ -26,7 +26,7 @@ int main(int argc, char **argcv){
         fclose(f);
         remove("out.txt");
     } else{
-        int delta = tn/totalhijos;
+        int delta = tn/totalhijos + tn%totalhijos;
         funcion_de_hijos(j, j*delta, (j*delta)+delta);
     }
 
@@ -50,7 +50,7 @@ int leer_datos(char *filename, int **v){
 void funcion_de_hijos(int j, int a, int b){
     int sumaparcial = 0;
     FILE *f;
-    for (int i = a; i < b; i++) sumaparcial += vector[i];
+    for (int i = a; i < b; i++) {sumaparcial += vector[i];}
     printf("suma parcial hijo %d: %d\n", j,sumaparcial);
     f = fopen("out.txt", "a");
     if(!f) {printf("Error al abrir hijo\n"); exit(3);}
