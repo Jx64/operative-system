@@ -1,5 +1,9 @@
 # operative-system
 
+signals
+-
+El programa recibe una cantidad N de hijos que tendra el padre. Posterior, cuando el proceso padre termine su ejecución, enviará una señal al proceso hijo N, este a su vez cuando termine su proceso enviará una señal al hijo N-1 hasta llegar al primer hijo.
+
 taller_fork
 -
 Taller en clase donde se pide un programa donde se envie el numero de procesos hijo como primer argumentos y un archivo de lectura que contenga nomeros enteros.
