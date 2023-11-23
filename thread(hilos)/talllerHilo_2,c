@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <string.h>
+#include <sys/shm.h>
+
+pthread_mutex_t my = PTHREAD_MUTEX_INITIALIZER;
+
+double suma = 0.0;
+
+typedef struct{
+    int id;
+    int *vectorA;
+    int *vectorB;
+    int start;
+    int end;
+    int maxsize;
+    double sumaParcial;
+} Data;
+
+
+void *funcion_mse(void *arg){
+    Data *data = (Data*) arg;
+
+    for(int i = data->start; i < data->end-1; i++){
+        pthread_mutex_lock(&my);
+        double diferencia = data->vectorA[i] - data->vectorB[i];
+        data->sumaParcial += (diferencia * diferencia);
+        pthread_mutex_unlock(&my);
+    }
+
+    pthread_mutex_lock(&my);
+    suma += data->sumaParcial;
+    pthread_mutex_unlock(&my);
+
+    pthread_exit(NULL);
+}
+
+
+int main(int argc, char** argv){
+    FILE *file;
+    file = fopen(argv[1], "r");
+    if (file == NULL) {
+        perror("Error al abrir el archivo");
+        return 1;
+    }
+    
+    int numeroHilos = atoi(argv[2]);
+    int maxsize = atoi(argv[3]);
+    int size;
+    fscanf(file, "%d", &size);
+
+
+    int *A = (int *)malloc(maxsize * sizeof(int *));
+    for (int i = 0; i < maxsize; i++) {
+        fscanf(file, "%d", &A[i]);
+    }
+
+    int *B = (int *)malloc(maxsize * sizeof(int *));
+    for (int i = 0; i < maxsize; i++) {
+        fscanf(file, "%d", &B[i]);
+    }
+
+    pthread_t hilos[numeroHilos];
+
+    Data *data = (Data *)malloc(numeroHilos * sizeof(Data));
+
+    for(int i=0; i < numeroHilos; i++){
+        data[i].id = i;
+        data[i].maxsize = maxsize;
+        data[i].vectorA = A;
+        data[i].vectorB = B;
+        data[i].start = i * (maxsize/numeroHilos);
+        data[i].end = (i+1) * (maxsize/numeroHilos);
+        data[i].sumaParcial = 0.0;
+    }
+
+    struct timespec tic, toc;
+    double Elapsed;
+    clock_gettime( CLOCK_REALTIME, &tic);
+    
+    for (int i = 0; i < numeroHilos; i++) {        
+        pthread_create(&hilos[i], NULL, funcion_mse, (void*)&data[i]);
+    }
+
+    for (int i = 0; i < numeroHilos; ++i) {
+        pthread_join(hilos[i], NULL);
+    }
+
+    clock_gettime( CLOCK_REALTIME, &toc);
+    Elapsed = (toc.tv_sec-tic.tv_sec)+((toc.tv_nsec-tic.tv_nsec)/(double)1E9);
+    printf("%.6lf\n", Elapsed );
+
+    double MSE = (double)(suma);
+
+    printf("MSE -> %f\n", MSE);
+
+    free(data);
+
+    return EXIT_SUCCESS;
+}
