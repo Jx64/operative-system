@@ -57,11 +57,9 @@ void *funcionHilo(void *arg){
     int rows = data->start+1, rowsEnd = data->end-1;
     if(data->nHilos != 1){
         if(data->id==0){
-            rows = data->start+1;
             rowsEnd = data->end;
         }else if(data->id == (data->nHilos-1)){
             rows = data->start;
-            rowsEnd = data->end-1;
         }else{
             rows = data->start;
             rowsEnd = data->end;
